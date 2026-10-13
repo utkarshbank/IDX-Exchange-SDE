@@ -2,6 +2,8 @@ const express = require("express");
 const router = express.Router();
 const pool = require("../db");
 
+const ID_REGEX = /^[A-Za-z0-9_-]{1,50}$/;
+
 router.get("/", async (req, res) => {
   let { city, zipcode, minPrice, maxPrice, beds, baths, limit, offset } = req.query;
 
@@ -66,6 +68,54 @@ router.get("/", async (req, res) => {
     );
 
     res.json({ total, limit, offset, results });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// Must be registered BEFORE "/:id"
+router.get("/:id/openhouses", async (req, res) => {
+  const { id } = req.params;
+  if (!ID_REGEX.test(id)) {
+    return res.status(400).json({ error: "Invalid listing ID format" });
+  }
+
+  try {
+    const [props] = await pool.query(
+      "SELECT L_ListingID FROM rets_property WHERE L_ListingID = ? LIMIT 1",
+      [id]
+    );
+    if (props.length === 0) {
+      return res.status(404).json({ error: `No property found with listing ID ${id}` });
+    }
+
+    const [rows] = await pool.query(
+      "SELECT * FROM rets_openhouse WHERE L_ListingID = ? ORDER BY OpenHouseDate, OH_StartTime",
+      [id]
+    );
+    res.json(rows);
+  } catch (err) {
+    console.error("openhouses error for", id, err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+router.get("/:id", async (req, res) => {
+  const { id } = req.params;
+  if (!ID_REGEX.test(id)) {
+    return res.status(400).json({ error: "Invalid listing ID format" });
+  }
+
+  try {
+    const [rows] = await pool.query(
+      "SELECT * FROM rets_property WHERE L_ListingID = ? LIMIT 1",
+      [id]
+    );
+    if (rows.length === 0) {
+      return res.status(404).json({ error: `No property found with listing ID ${id}` });
+    }
+    res.json(rows[0]);
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Internal server error" });
