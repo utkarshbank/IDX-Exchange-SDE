@@ -2,9 +2,12 @@ import { useEffect, useState } from "react";
 import { fetchProperties } from "./api";
 import PropertyCard from "./PropertyCard";
 import PropertyFilters from "./PropertyFilters";
+import Pagination from "./Pagination";
 
 export default function ListingsPage() {
   const [filters, setFilters] = useState({});
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(20);
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -14,21 +17,40 @@ export default function ListingsPage() {
     setLoading(true);
     setError(null);
 
-    fetchProperties({ ...filters, limit: 20, offset: 0 })
+    fetchProperties({
+      ...filters,
+      limit: itemsPerPage,
+      offset: (currentPage - 1) * itemsPerPage,
+    })
       .then((res) => { if (!ignore) setData(res); })
       .catch((err) => { if (!ignore) setError(err.message); })
       .finally(() => { if (!ignore) setLoading(false); });
 
     return () => { ignore = true; };
-  }, [filters]);
+  }, [filters, currentPage, itemsPerPage]);
+
+  // New filters always go back to page 1
+  const handleSearch = (f) => {
+    setFilters(f);
+    setCurrentPage(1);
+  };
+  const handleClear = () => {
+    setFilters({});
+    setCurrentPage(1);
+  };
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+    window.scrollTo(0, 0);
+  };
+
+  const totalPages = data ? Math.ceil(data.total / itemsPerPage) : 0;
+  const start = data ? data.offset + 1 : 0;
+  const end = data ? data.offset + data.results.length : 0;
 
   return (
     <div className="page">
       <h1>Listings</h1>
-      <PropertyFilters
-        onSearch={(f) => setFilters(f)}
-        onClear={() => setFilters({})}
-      />
+      <PropertyFilters onSearch={handleSearch} onClear={handleClear} />
 
       {loading && <p className="status">Loading properties...</p>}
       {error && <p className="status error">Error: {error}</p>}
@@ -39,13 +61,18 @@ export default function ListingsPage() {
         ) : (
           <>
             <p className="muted">
-              Showing {data.results.length} of {data.total.toLocaleString()} properties
+              Showing {start.toLocaleString()}-{end.toLocaleString()} of {data.total.toLocaleString()} properties
             </p>
             <div className="grid">
               {data.results.map((p) => (
                 <PropertyCard key={p.id} property={p} />
               ))}
             </div>
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={handlePageChange}
+            />
           </>
         )
       )}
