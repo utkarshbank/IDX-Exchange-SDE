@@ -1,44 +1,41 @@
-function getFirstPhoto(raw) {
-  if (!raw) return null;
-  let data = raw;
-  if (typeof raw === "string") {
-    try {
-      data = JSON.parse(raw);
-    } catch {
-      return null;
-    }
-  }
-  if (!Array.isArray(data) || data.length === 0) return null;
-  const first = data[0];
-  if (typeof first === "string") return first || null;
-  if (first && typeof first === "object") {
-    return first.url || first.uri || first.MediaURL || first.src || null;
-  }
-  return null;
-}
-
-const money = (n) =>
-  n == null ? "Price unavailable" : `$${Number(n).toLocaleString()}`;
+import { useNavigate } from "react-router-dom";
+import PropertyImageCarousel from "./PropertyImageCarousel";
+import { useFavorites } from "./useFavorites";
+import { money, num } from "./format";
 
 export default function PropertyCard({ property }) {
-  const photo = getFirstPhoto(property.L_Photos);
-  const sqft = property.LM_Int2_3;
+  const navigate = useNavigate();
+  const { isFavorite, toggle } = useFavorites();
+  const id = property.L_ListingID;
+  const favorited = isFavorite(id);
+
+  const open = () => navigate(`/property/${encodeURIComponent(id)}`);
 
   return (
-    <div className="card">
-      {photo ? (
-        <img
-          src={photo}
-          alt={property.L_Address || "Property"}
-          onError={(e) => {
-            e.currentTarget.style.display = "none";
-            e.currentTarget.nextSibling.style.display = "flex";
-          }}
-        />
-      ) : null}
-      <div className="no-photo" style={{ display: photo ? "none" : "flex" }}>
-        No photo available
-      </div>
+    <div
+      className="card"
+      role="link"
+      tabIndex={0}
+      onClick={open}
+      onKeyDown={(e) => {
+        // only when the card itself is focused, not a button inside it
+        if (e.target === e.currentTarget && e.key === "Enter") open();
+      }}
+    >
+      <button
+        type="button"
+        className={favorited ? "heart active" : "heart"}
+        aria-pressed={favorited}
+        aria-label={favorited ? "Remove from favorites" : "Add to favorites"}
+        onClick={(e) => {
+          e.stopPropagation(); // don't navigate to the detail page
+          toggle(id);
+        }}
+      >
+        {favorited ? "♥" : "♡"}
+      </button>
+
+      <PropertyImageCarousel photos={property.L_Photos} alt={property.L_Address || "Property"} />
       <div className="card-body">
         <div className="price">{money(property.L_SystemPrice)}</div>
         <div>{property.L_Address || "Address unavailable"}</div>
@@ -46,8 +43,7 @@ export default function PropertyCard({ property }) {
           {[property.L_City, property.L_State].filter(Boolean).join(", ")}
         </div>
         <div className="stats">
-          {property.L_Keyword2 ?? "–"} bd · {property.LM_Dec_3 ?? "–"} ba ·{" "}
-          {sqft ? Number(sqft).toLocaleString() : "–"} sqft
+          {property.L_Keyword2 ?? "–"} bd · {property.LM_Dec_3 ?? "–"} ba · {num(property.LM_Int2_3)} sqft
         </div>
       </div>
     </div>

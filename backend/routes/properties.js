@@ -4,8 +4,11 @@ const pool = require("../db");
 
 const ID_REGEX = /^[A-Za-z0-9_-]{1,50}$/;
 
+// Real SQL column names (not RESO names): price, date listed, sqft, beds
+const SORTABLE_COLUMNS = ["L_SystemPrice", "ListingContractDate", "LM_Int2_3", "L_Keyword2"];
+
 router.get("/", async (req, res) => {
-  let { city, zipcode, minPrice, maxPrice, beds, baths, limit, offset } = req.query;
+  let { city, zipcode, minPrice, maxPrice, beds, baths, limit, offset, sortBy, sortOrder } = req.query;
 
   limit = limit !== undefined ? Number(limit) : 20;
   offset = offset !== undefined ? Number(offset) : 0;
@@ -17,12 +20,32 @@ router.get("/", async (req, res) => {
     return res.status(400).json({ error: "offset must be a non-negative integer" });
   }
 
+  // id tiebreaker keeps pagination stable when many rows share a value
+  let orderClause = "ORDER BY id ASC";
+  if (sortBy !== undefined) {
+    if (!SORTABLE_COLUMNS.includes(sortBy)) {
+      return res.status(400).json({
+        error: `sortBy must be one of: ${SORTABLE_COLUMNS.join(", ")}`,
+      });
+    }
+    const dir = String(sortOrder ?? "asc").toLowerCase();
+    if (dir !== "asc" && dir !== "desc") {
+      return res.status(400).json({ error: "sortOrder must be asc or desc" });
+    }
+    // sortBy can go into the SQL text because it exactly matches a whitelist entry.
+    // ASC puts NULLs first in MySQL, so push them last; DESC already does.
+    orderClause =
+      dir === "asc"
+        ? `ORDER BY ${sortBy} IS NULL, ${sortBy} ASC, id ASC`
+        : `ORDER BY ${sortBy} DESC, id ASC`;
+  }
+
   const conditions = [];
   const values = [];
 
   if (city !== undefined) {
-    conditions.push("LOWER(TRIM(L_City)) = LOWER(TRIM(?))");
-    values.push(city);
+    conditions.push("L_City = ?");
+    values.push(String(city).trim());
   }
   if (zipcode !== undefined) {
     conditions.push("L_Zip = ?");
@@ -63,7 +86,7 @@ router.get("/", async (req, res) => {
     const total = countRows[0].total;
 
     const [results] = await pool.query(
-      `SELECT * FROM rets_property ${whereClause} LIMIT ? OFFSET ?`,
+      `SELECT * FROM rets_property ${whereClause} ${orderClause} LIMIT ? OFFSET ?`,
       [...values, limit, offset]
     );
 
