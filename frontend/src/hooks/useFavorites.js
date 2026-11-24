@@ -20,7 +20,9 @@ function getSnapshot() {
   let raw = null;
   try {
     raw = localStorage.getItem(KEY);
-  } catch {}
+  } catch {
+    // localStorage unavailable (private mode): fall back to an empty list
+  }
   if (raw !== lastRaw) {
     lastRaw = raw;
     lastValue = parse(raw);
@@ -40,7 +42,9 @@ function subscribe(listener) {
 function write(next) {
   try {
     localStorage.setItem(KEY, JSON.stringify(next));
-  } catch {}
+  } catch {
+    // storage full or unavailable: favorites just won't persist
+  }
   listeners.forEach((l) => l());
 }
 
