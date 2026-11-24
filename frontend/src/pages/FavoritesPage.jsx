@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { fetchProperty } from "./api";
-import { useFavorites } from "./useFavorites";
-import PropertyCard from "./PropertyCard";
+import { fetchProperty } from "../api/properties";
+import { useFavorites } from "../hooks/useFavorites";
+import PropertyCard from "../components/PropertyCard";
 
 export default function FavoritesPage() {
   const { favorites } = useFavorites();

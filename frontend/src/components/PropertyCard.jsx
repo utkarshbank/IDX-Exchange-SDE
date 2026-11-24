@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import PropertyImageCarousel from "./PropertyImageCarousel";
-import { useFavorites } from "./useFavorites";
-import { money, num } from "./format";
+import { useFavorites } from "../hooks/useFavorites";
+import { money, num } from "../utils/format";
 
 export default function PropertyCard({ property }) {
   const navigate = useNavigate();

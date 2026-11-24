@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
-import { fetchProperties } from "./api";
-import PropertyCard from "./PropertyCard";
-import PropertyFilters from "./PropertyFilters";
-import Pagination from "./Pagination";
+import { fetchProperties } from "../api/properties";
+import PropertyCard from "../components/PropertyCard";
+import PropertyFilters from "../components/PropertyFilters";
+import Pagination from "../components/Pagination";
 
 const SORT_OPTIONS = [
   { value: "", label: "Default" },

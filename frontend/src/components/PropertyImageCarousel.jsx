@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { parsePhotos } from "./photos";
+import { parsePhotos } from "../utils/photos";
 
 export default function PropertyImageCarousel({ photos: raw, alt }) {
   const photos = parsePhotos(raw);

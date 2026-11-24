@@ -1,9 +1,9 @@
 import { BrowserRouter, Routes, Route, Link, useLocation } from "react-router-dom";
-import ListingsPage from "./ListingsPage";
-import PropertyDetailPage from "./PropertyDetailPage";
-import FavoritesPage from "./FavoritesPage";
-import ErrorBoundary from "./ErrorBoundary";
-import { useFavorites } from "./useFavorites";
+import ListingsPage from "./pages/ListingsPage";
+import PropertyDetailPage from "./pages/PropertyDetailPage";
+import FavoritesPage from "./pages/FavoritesPage";
+import ErrorBoundary from "./components/ErrorBoundary";
+import { useFavorites } from "./hooks/useFavorites";
 import "./App.css";
 
 function NavBar() {

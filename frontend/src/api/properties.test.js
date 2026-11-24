@@ -1,4 +1,4 @@
-import { fetchProperties } from "./api";
+import { fetchProperties } from "./properties";
 
 afterEach(() => vi.unstubAllGlobals());
 
