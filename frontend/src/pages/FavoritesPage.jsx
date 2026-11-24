@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { fetchProperty } from "../api/properties";
 import { useFavorites } from "../hooks/useFavorites";
@@ -6,19 +6,20 @@ import PropertyCard from "../components/PropertyCard";
 
 export default function FavoritesPage() {
   const { favorites } = useFavorites();
-  const initialIds = useRef(favorites);
+  // Snapshot of what was saved when the page opened; later changes only filter the list below
+  const [initialIds] = useState(favorites);
   const [loaded, setLoaded] = useState(null);
 
   useEffect(() => {
     let ignore = false;
-    Promise.allSettled(initialIds.current.map((id) => fetchProperty(id))).then((results) => {
+    Promise.allSettled(initialIds.map((id) => fetchProperty(id))).then((results) => {
       if (ignore) return;
       setLoaded(results.filter((r) => r.status === "fulfilled").map((r) => r.value));
     });
     return () => { ignore = true; };
-  }, []);
+  }, [initialIds]);
 
-  if (initialIds.current.length > 0 && loaded === null) {
+  if (initialIds.length > 0 && loaded === null) {
     return <p className="status">Loading favorites...</p>;
   }
 
