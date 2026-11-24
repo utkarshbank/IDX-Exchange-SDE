@@ -10,24 +10,22 @@ const yesNo = (v) => (v == null ? null : v ? "Yes" : "No");
 
 export default function PropertyDetailPage() {
   const { id } = useParams();
-  const [property, setProperty] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [result, setResult] = useState({ id: null, property: null, error: null });
 
   useEffect(() => {
     let ignore = false;
-    setLoading(true);
-    setError(null);
-    setProperty(null);
     window.scrollTo(0, 0);
 
     fetchProperty(id)
-      .then((p) => { if (!ignore) setProperty(p); })
-      .catch((e) => { if (!ignore) setError(e.message); })
-      .finally(() => { if (!ignore) setLoading(false); });
+      .then((property) => { if (!ignore) setResult({ id, property, error: null }); })
+      .catch((e) => { if (!ignore) setResult({ id, property: null, error: e.message }); });
 
     return () => { ignore = true; };
   }, [id]);
+
+  const loading = result.id !== id;
+  const error = loading ? null : result.error;
+  const p = loading ? null : result.property;
 
   if (loading) return <p className="status">Loading property...</p>;
 
@@ -40,7 +38,6 @@ export default function PropertyDetailPage() {
     );
   }
 
-  const p = property;
   const address = [p.L_Address, p.L_City, [p.L_State, p.L_Zip].filter(Boolean).join(" ")]
     .filter(Boolean)
     .join(", ");
