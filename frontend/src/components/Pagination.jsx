@@ -1,4 +1,4 @@
-import { getPageNumbers } from "./pageNumbers";
+import { getPageNumbers } from "../utils/pageNumbers";
 
 export default function Pagination({ currentPage, totalPages, onPageChange }) {
   if (totalPages <= 1) return null;

@@ -10,7 +10,7 @@ async function request(url) {
     try {
       const body = await res.json();
       if (body.error) message = body.error;
-    } catch {}
+    } catch { /* safe to ignore, falls back to defaults */ }
     throw new Error(message);
   }
   return res.json();

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { fetchOpenHouses } from "./api";
-import { formatDate, formatTime } from "./format";
+import { fetchOpenHouses } from "../api/properties";
+import { formatDate, formatTime } from "../utils/format";
 
 function parseAllData(raw) {
   if (!raw) return {};
@@ -13,18 +13,19 @@ function parseAllData(raw) {
 }
 
 export default function OpenHouses({ listingId }) {
-  const [rows, setRows] = useState(null);
-  const [error, setError] = useState(null);
+  const [result, setResult] = useState({ id: null, rows: null, error: null });
 
   useEffect(() => {
     let ignore = false;
-    setRows(null);
-    setError(null);
     fetchOpenHouses(listingId)
-      .then((r) => { if (!ignore) setRows(r); })
-      .catch((e) => { if (!ignore) setError(e.message); });
+      .then((rows) => { if (!ignore) setResult({ id: listingId, rows, error: null }); })
+      .catch((e) => { if (!ignore) setResult({ id: listingId, rows: null, error: e.message }); });
     return () => { ignore = true; };
   }, [listingId]);
+
+  const loading = result.id !== listingId;
+  const rows = loading ? null : result.rows;
+  const error = loading ? null : result.error;
 
   return (
     <section className="panel">

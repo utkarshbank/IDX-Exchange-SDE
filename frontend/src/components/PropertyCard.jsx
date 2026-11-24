@@ -1,7 +1,8 @@
+import PropTypes from "prop-types";
 import { useNavigate } from "react-router-dom";
 import PropertyImageCarousel from "./PropertyImageCarousel";
-import { useFavorites } from "./useFavorites";
-import { money, num } from "./format";
+import { useFavorites } from "../hooks/useFavorites";
+import { money, num } from "../utils/format";
 
 export default function PropertyCard({ property }) {
   const navigate = useNavigate();
@@ -49,3 +50,17 @@ export default function PropertyCard({ property }) {
     </div>
   );
 }
+
+PropertyCard.propTypes = {
+  property: PropTypes.shape({
+    L_ListingID: PropTypes.string.isRequired,
+    L_Photos: PropTypes.oneOfType([PropTypes.string, PropTypes.array]),
+    L_Address: PropTypes.string,
+    L_City: PropTypes.string,
+    L_State: PropTypes.string,
+    L_SystemPrice: PropTypes.number,
+    L_Keyword2: PropTypes.number,
+    LM_Dec_3: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
+    LM_Int2_3: PropTypes.number,
+  }).isRequired,
+};

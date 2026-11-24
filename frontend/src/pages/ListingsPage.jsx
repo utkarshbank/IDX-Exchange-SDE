@@ -1,8 +1,8 @@
-import { useEffect, useState } from "react";
-import { fetchProperties } from "./api";
-import PropertyCard from "./PropertyCard";
-import PropertyFilters from "./PropertyFilters";
-import Pagination from "./Pagination";
+import { useEffect, useMemo, useState } from "react";
+import { fetchProperties } from "../api/properties";
+import PropertyCard from "../components/PropertyCard";
+import PropertyFilters from "../components/PropertyFilters";
+import Pagination from "../components/Pagination";
 
 const SORT_OPTIONS = [
   { value: "", label: "Default" },
@@ -21,29 +21,32 @@ export default function ListingsPage() {
   const [sort, setSort] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(20);
-  const [data, setData] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [result, setResult] = useState({ key: null, data: null, error: null });
 
-  useEffect(() => {
-    let ignore = false;
-    setLoading(true);
-    setError(null);
-
+  const params = useMemo(() => {
     const [sortBy, sortOrder] = sort ? sort.split(":") : [];
-
-    fetchProperties({
+    return {
       ...filters,
       ...(sortBy ? { sortBy, sortOrder } : {}),
       limit: itemsPerPage,
       offset: (currentPage - 1) * itemsPerPage,
-    })
-      .then((res) => { if (!ignore) setData(res); })
-      .catch((err) => { if (!ignore) setError(err.message); })
-      .finally(() => { if (!ignore) setLoading(false); });
-
-    return () => { ignore = true; };
+    };
   }, [filters, sort, currentPage, itemsPerPage]);
+
+  const requestKey = JSON.stringify(params);
+
+  useEffect(() => {
+    let ignore = false;
+    fetchProperties(params)
+      .then((data) => { if (!ignore) setResult({ key: requestKey, data, error: null }); })
+      .catch((err) => { if (!ignore) setResult({ key: requestKey, data: null, error: err.message }); });
+    return () => { ignore = true; };
+  }, [params, requestKey]);
+
+  // Loading until the latest request has answered; stale answers are ignored above
+  const loading = result.key !== requestKey;
+  const data = loading ? null : result.data;
+  const error = loading ? null : result.error;
 
   // New filters reset the page AND the sort
   const handleSearch = (f) => {
@@ -69,7 +72,7 @@ export default function ListingsPage() {
   const totalPages = data ? Math.ceil(data.total / itemsPerPage) : 0;
   const start = data ? data.offset + 1 : 0;
   const end = data ? data.offset + data.results.length : 0;
-  const showResults = !loading && !error && data;
+  const showResults = Boolean(data) && !error;
 
   return (
     <div className="page">
