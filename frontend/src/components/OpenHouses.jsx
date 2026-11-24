@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { fetchOpenHouses } from "./api";
-import { formatDate, formatTime } from "./format";
+import { fetchOpenHouses } from "../api/properties";
+import { formatDate, formatTime } from "../utils/format";
 
 function parseAllData(raw) {
   if (!raw) return {};

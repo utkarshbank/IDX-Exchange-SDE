@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { parsePhotos } from "./photos";
+import { parsePhotos } from "../utils/photos";
 
 function Lightbox({ photos, index, onChange, onClose }) {
   const ref = useRef(null);

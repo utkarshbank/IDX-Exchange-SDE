@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { fetchProperty } from "./api";
-import { money, num } from "./format";
-import PropertyImageGallery from "./PropertyImageGallery";
-import PropertyMap from "./PropertyMap";
-import OpenHouses from "./OpenHouses";
+import { fetchProperty } from "../api/properties";
+import { money, num } from "../utils/format";
+import PropertyImageGallery from "../components/PropertyImageGallery";
+import PropertyMap from "../components/PropertyMap";
+import OpenHouses from "../components/OpenHouses";
 
 const yesNo = (v) => (v == null ? null : v ? "Yes" : "No");
 
